@@ -8,10 +8,10 @@ function User() {
 
   return (
     <div>
-      <p>{state?.user?.name}</p>
-      <p>{state?.user?.email}</p>
-      <p>{state?.user?.dateOfBirth}</p>
-      <p>{state?.user?.mobileNumber}</p>
+      <p>{state?.name}</p>
+      <p>{state?.email}</p>
+      <p>{state?.dateOfBirth}</p>
+      <p>{state?.mobileNumber}</p>
     </div>
   )
 }
