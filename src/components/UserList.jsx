@@ -1,61 +1,71 @@
-import { useEffect, useState } from "react"
-import { useNavigate } from "react-router";
-
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import API from "../api";
 
 function UserList() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  let [loading,setLoading]=useState(false)
-  let [error,setError]=useState(null)
-  let [users,setUsers]=useState([])
-  let navigate=useNavigate();
+  const navigate = useNavigate();
 
-  useEffect(()=>{
-      async function getUsers() {
-        setLoading(true);
-        try{
-          let res=await fetch("https://user-management-1-9zr4.onrender.com/user-api/users",{
-          method: "GET"
-          });
+  useEffect(() => {
+    const getUsers = async () => {
+      setLoading(true);
+      setError(null);
 
-          if(res.status === 200){
-            //extract json data
-            let data = await res.json();
-            //update the state 
-            setUsers(data.payload)
-          } else{
-              throw new Error("error occurred")
-            } 
-        }catch(err){
-          setError(err);
-        }finally{
-          setLoading(false);
-        }
+      try {
+        const res = await API.get("/user-api/users");
+
+        setUsers(res.data.payload || []);
+      } catch (err) {
+        setError(err?.message || "Failed to fetch users");
+      } finally {
+        setLoading(false);
       }
-      getUsers();
-  },[])
-    
+    };
 
-  //go to user
-  const gotoUser=(userObj)=>{
-    navigate("/user", { state: userObj })
+    getUsers();
+  }, []);
+
+  const gotoUser = (userObj) => {
+    navigate("/user", { state: userObj });
+  };
+
+  if (loading) {
+    return (
+      <p className="text-center text-orange-600 text-3xl">
+        Loading...
+      </p>
+    );
   }
 
-  
+  if (error) {
+    return (
+      <p className="text-center text-red-600 text-3xl">
+        {error}
+      </p>
+    );
+  }
 
   return (
     <div>
       <h1 className="text-5xl text-gray-600">List of Users</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
-        {
-          users.map(userObj=><div key={userObj.email} onClick={() => gotoUser(userObj)} className="p-10 shadow-2xl cursor-pointer">
-            <p className="text-3xl">{userObj.name}</p>
-            <p className="text-2xl">{userObj.email}</p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 mt-10">
+        {users.map((user) => (
+          <div
+            key={user._id || user.email}
+            onClick={() => gotoUser(user)}
+            className="p-10 shadow-2xl cursor-pointer hover:scale-105 transition"
+          >
+            <p className="text-3xl">{user.name}</p>
+            <p className="text-2xl text-gray-600">{user.email}</p>
           </div>
-          )
-        }
+        ))}
       </div>
     </div>
-  )
+  );
 }
 
-export default UserList
+export default UserList;
