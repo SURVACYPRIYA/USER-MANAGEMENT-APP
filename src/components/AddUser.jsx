@@ -1,90 +1,65 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import {useForm} from "react-hook-form"
 import { useNavigate } from "react-router";
-import API from "../api";
-
+ 
 function AddUser() {
-  const { register, handleSubmit, reset } = useForm();
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const {register,handleSubmit,formState:{errors}}=useForm();
 
-  const navigate = useNavigate();
+  let [loading,setLoading]=useState(false)
+  let [error,setError]=useState(null)
 
-  const onUserCreate = async (newUser) => {
+  let navigate=useNavigate();
+
+  //form submit
+  const onUserCreate=async(newUser)=>{
+    // console.log(newUser)
     setLoading(true);
-    setError(null);
 
-    try {
-      await API.post("/user-api/users", newUser);
+    //make HTTP POST req to create new user
+    try{
+      let res = await fetch("https://user-management-1-9zr4.onrender.com/user-api/users",{
+        method: "POST",
+        headers: {
+          "Content-Type":"application/json",
+        },
+        body : JSON.stringify(newUser),
+      });
 
-      reset(); // clears form after success
-      navigate("/users-list");
-
-    } catch (err) {
-      console.log("API Error:", err);
-      setError(err.response?.data?.message || err.message);
-    } finally {
+      if(res.status===201){
+        //user created it should navigate  to user list
+        navigate("/users-list")
+      }else{
+        throw new Error("error occurred")
+      }
+    }catch(err){
+      setError(err);
+    }finally{
       setLoading(false);
     }
   };
 
+  if(loading){
+    return <p className="text-center text-orange-600 text-3xl">Loading....</p>
+  }
+
+  if(error){
+    return <p className="text-center text-red-600 text-3xl">{error.message}</p>
+  }
+
   return (
     <div className="text-center">
       <h1 className="text-5xl text-gray-600">Add New User</h1>
-
-      {loading && (
-        <p className="text-orange-600 text-2xl mt-5">Loading....</p>
-      )}
-
-      {error && (
-        <p className="text-red-600 text-2xl mt-5">{error}</p>
-      )}
-
-      <form
-        onSubmit={handleSubmit(onUserCreate)}
-        className="max-w-60 mx-auto mt-10"
-      >
-        <input
-          type="text"
-          {...register("name")}
-          className="mb-5 border w-full"
-          placeholder="Name"
-          required
-        />
-
-        <input
-          type="text"
-          {...register("email")}
-          className="mb-10 border w-full"
-          placeholder="Email"
-          required
-        />
-
-        <input
-          type="date"
-          {...register("dateOfBirth")}
-          className="mb-10 border w-full"
-          required
-        />
-
-        <input
-          type="number"
-          {...register("mobileNumber")}
-          className="mb-10 border w-full"
-          placeholder="Mobile Number"
-          required
-        />
-
-        <button
-          type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Add User
-        </button>
+      {/* create user form */}
+      <form onSubmit={handleSubmit(onUserCreate)} className="max-w-60 mx-auto mt-10">
+        <input type="text" {...register("name")} className="mb-5 border w-full" placeholder="Name" />
+        <input type="text" {...register("email")} className="mb-10 border w-full" placeholder="email" />
+        <input type="date" {...register("dateOfBirth")} className="mb-10 border w-full" placeholder="dateOfBirth" />
+        <input type="number" {...register("mobileNumber")} className="mb-10 border w-full" placeholder="mobileNumber" />
+        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">Add User</button>
       </form>
     </div>
-  );
+  )
 }
 
-export default AddUser;
+export default AddUser
