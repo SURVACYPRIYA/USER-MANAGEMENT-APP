@@ -10,23 +10,34 @@ function UserList() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const getUsers = async () => {
-      setLoading(true);
-      setError(null);
+  console.log("UserList loaded");
 
-      try {
-        const res = await API.get("/user-api/users");
+  async function getUsers() {
+    console.log("Calling API...");
 
-        setUsers(res.data.payload || []);
-      } catch (err) {
-        setError(err?.message || "Failed to fetch users");
-      } finally {
-        setLoading(false);
+    try {
+      let res = await fetch("https://user-management-1-9zr4.onrender.com/user-api/users");
+
+      console.log("Response received:", res);
+
+      if (res.status === 200) {
+        let data = await res.json();
+        console.log("Data:", data);
+
+        setUsers(data.payload);
+      } else {
+        throw new Error("Failed to fetch users");
       }
-    };
+    } catch (err) {
+      console.log("Error:", err);
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
+  }
 
-    getUsers();
-  }, []);
+  getUsers();
+}, []);
 
   const gotoUser = (userObj) => {
     navigate("/user", { state: userObj });
